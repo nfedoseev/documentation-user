@@ -21,6 +21,17 @@
             $main       = $wrap.find('main'),
             $footer     = $body.find('> footer');
 
+        // --  Detect page type
+        var page_type = (function () {
+            if ($wrap.hasClass('index')) {
+                return 'index';
+            } else if ($main.find('article').hasClass('doc-tocindex-category')){
+                return 'category-index';
+            } else {
+                return 'article';
+            }
+        })();
+
         // --  Floating action
         var $mask       = $body.find('#mask'),
             $float      = $body.find("#floating_action"),
@@ -106,7 +117,76 @@
                 $(".floating_action_container").remove();
             }
             if (has_aside) { $aside_nav.find("li").has("ul").addClass("parent"); };
+
+	    if (page_type == 'article') {
+		attach_permalink_markers();
+
+		// Hide empty-permalink first sections
+		var $f_s = $main.find('article.doc-body > section:first-child');
+		$f_s.toggleClass('hidden', $f_s[0].childElementCount == 1 && $f_s.children().is('i:empty'));
+
+		if (has_aside) {
+		    if (aside_links.length < 2) {
+			has_aside = false;
+			$main.addClass("o_aside_removed");
+			$floating_container.add($mask).add($aside).remove();
+			return;
+		    }
+
+		    floating_menu_layout();
+		    set_scroll_to(aside_links);
+		    ripple_animation(aside_links);
+		    $aside_nav.find("li").has("ul").addClass("parent");
+		}
+	    }
         }
+
+
+        // -- Attach permalink markers to sections' title
+        var attach_permalink_markers = function () {
+            $main.find('article.doc-body > section').each( function () {
+                var $section  = $(this),
+                    $title    = $section.find('> h2, > h3, > h4, > h5, > h6'),
+                    target_id = $section.attr('id'),
+                    $icon     = $('<i/>').addClass('mdi-content-link');
+
+                if ($title.length <= 0) {
+                    return;
+                }
+
+                $title.addClass('o_has_permalink_marker').append($icon);
+
+                $icon.on('click', function () {
+                    _scroll_and_set_hash("#" + target_id);
+
+                    $title.addClass('o_marked').delay(1000).queue(function (){
+                        $title.removeClass('o_marked').dequeue();
+                    });
+                    return false;
+                });
+            });
+        };
+
+        // -- Scroll To
+        var set_scroll_to = function (el_list) {
+            el_list.each(function () {
+                var $link     = $(this),
+                    target_id = $link.attr("href");
+
+                $link.on("click", function () {
+                    $aside_nav.find("li").removeClass("active");
+                    $link.parents("li").addClass("active");
+                    _scroll_and_set_hash(target_id);
+                    return false;
+                });
+            });
+
+            $body.scrollspy({
+                target: 'aside',
+                offset: 200,
+            });
+        };
+
 
         // -- Float action menu
         var floating_menu_layout = function() {
@@ -133,26 +213,6 @@
                 $mask.toggleClass("active");
             }, 300);
         };
-
-        // -- Scroll To
-        var scroll_to = function(el_list) {
-            var offset = 80;
-            el_list.each(function() {
-                var $link = $(this),
-                    href  = $link.attr("href");
-
-                $link.on("click", function() {
-                    var val = $(href).offset().top - 60;
-                    $('html, body').animate({
-                        scrollTop: val
-                    }, 400);
-                    $aside_nav.find("li").removeClass("active");
-                    $link.parents("li").addClass("active");
-                    window.location.hash = $link.prop('hash');
-                    return false;
-                })
-            })
-        }
 
         // -- Ripple buttons
         var ripple_animation = function(el_list) {
@@ -284,6 +344,24 @@
             });
         });
 
+
+        // ======= Utils ==================
+        // =================================
+        var _scroll_and_set_hash = function (target_id) {
+            $('html, body').animate({
+                scrollTop: $(target_id).offset().top - 60
+            }, 100);
+            window.location.hash = target_id;
+        };
+
+        var _toggle_float = function () {
+            $float.toggleClass("active");
+            setTimeout(function () {
+                $float_menu.toggleClass("active");
+                $mask.toggleClass("active");
+            }, 300);
+        };
+
         // ======= Onload ==================
         // =================================
         // -- Call default functions
@@ -294,7 +372,7 @@
 
         if (has_aside) {
             floating_menu_layout();
-            scroll_to(aside_links);
+            set_scroll_to(aside_links);
             ripple_animation(aside_links);
         }
 
