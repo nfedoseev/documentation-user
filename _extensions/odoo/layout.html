@@ -55,7 +55,7 @@
 
 {%- block header -%}
   <header class="o_main_header o_has_sub_nav o_inverted {{ ' '.join(classes) }}">
-    <div class="o_main_header_main">
+    <div class="o_main_header_main ">
       <a class="pull-left o_logo" href="/"></a>
       <a href="#" class="o_mobile_menu_toggle visible-xs-block pull-right">
         <span class="sr-only">Toggle navigation</span>
@@ -201,16 +201,6 @@
             <a href="http://www.odoo.com/trial" class="btn btn-primary">Start Now</a>
           </div>
 
-          <ul class="navbar-nav navbar-right nav o_sub_nav_actions">
-            {% if pagename != master_doc %}
-              <li class="divider"></li>
-            {% endif%}
-
-            {% block switchers_desktop %}
-            {% include "switchers_list.html" %}
-            {% endblock %}
-          </ul>
-
           <ul class="nav navbar-nav navbar-right">
             {% if languages or versions %}
               <li class="divider"></li>
@@ -223,6 +213,16 @@
             {% if languages or versions %}
               <li class="divider"></li>
             {% endif %}
+          </ul>
+
+          <ul class="navbar-nav navbar-right nav o_sub_nav_actions">
+            {% if pagename != master_doc %}
+              <li class="divider"></li>
+            {% endif%}
+
+            {% block switchers_desktop %}
+            {% include "switchers_list.html" %}
+            {% endblock %}
           </ul>
         </div>
       </div>
